@@ -39,6 +39,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       
       - name: Build with Next.js
+        env:
+          NEXT_PUBLIC_GTM_ID: ${{ secrets.GTM_ID }}
         run: pnpm run build
       
       - name: Upload artifact
