@@ -231,7 +231,7 @@ export default function Home() {
             官報ダウンローダー
           </h1>
           <p className="text-gray-600">
-            官報ファイルを年別にダウンロードできます
+            官報アーカイブを年別にダウンロードできます
           </p>
         </header>
 
@@ -326,10 +326,10 @@ export default function Home() {
                       <h3 className="text-lg font-semibold text-gray-800 mb-4">
                         {formatDate(date)}
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                      <div className="flex gap-3 overflow-x-auto">
                         {/* 本紙 */}
                         {typeGroups.h && typeGroups.h.length > 0 && (
-                          <div className="space-y-2">
+                          <div className="space-y-2 w-40 shrink-0">
                             {typeGroups.h.map((file, index) => (
                               <a
                                 key={index}
@@ -365,7 +365,7 @@ export default function Home() {
                         
                         {/* 号外 */}
                         {typeGroups.g && typeGroups.g.length > 0 && (
-                          <div className="space-y-2">
+                          <div className="space-y-2 w-40 shrink-0">
                             {typeGroups.g.map((file, index) => (
                               <a
                                 key={index}
@@ -401,7 +401,7 @@ export default function Home() {
                         
                         {/* 政府調達 */}
                         {typeGroups.c && typeGroups.c.length > 0 && (
-                          <div className="space-y-2">
+                          <div className="space-y-2 w-40 shrink-0">
                             {typeGroups.c.map((file, index) => (
                               <a
                                 key={index}
@@ -437,7 +437,7 @@ export default function Home() {
                         
                         {/* 特別号外 */}
                         {typeGroups.t && typeGroups.t.length > 0 && (
-                          <div className="space-y-2">
+                          <div className="space-y-2 w-40 shrink-0">
                             {typeGroups.t.map((file, index) => (
                               <a
                                 key={index}
@@ -473,7 +473,7 @@ export default function Home() {
                         
                         {/* 目録 */}
                         {typeGroups.m && typeGroups.m.length > 0 && (
-                          <div className="space-y-2">
+                          <div className="space-y-2 w-40 shrink-0">
                             {typeGroups.m.map((file, index) => (
                               <a
                                 key={index}
