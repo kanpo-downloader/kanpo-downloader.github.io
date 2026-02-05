@@ -23,7 +23,7 @@ interface MonthGroup {
 }
 
 export default function Home() {
-  const [selectedYear, setSelectedYear] = useState(2025);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [files, setFiles] = useState<GroupedFiles>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
