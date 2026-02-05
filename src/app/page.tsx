@@ -56,16 +56,42 @@ export default function Home() {
   const fetchFiles = async (year: number) => {
     setLoading(true);
     setError(null);
-    
-          try {
-        const response = await fetch(`https://kanpo-ghapi-cache.m9m9.workers.dev/?year=${year}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      const cacheUrl = `https://kanpo-ghapi-cache.m9m9.workers.dev/?year=${year}`;
+      const githubUrl = `https://api.github.com/repos/kanpo-downloader/kanpo-${year}/git/trees/main?recursive=1`;
+
+      // Try the cache endpoint first
+      let response: Response | null = null;
+      let data: any = null;
+
+      try {
+        response = await fetch(cacheUrl);
+        if (response.ok) {
+          data = await response.json();
+        } else {
+          // Treat non-OK as a fallback trigger
+          console.warn(`Cache fetch failed with status ${response.status}, falling back to GitHub API`);
         }
+      } catch (err) {
+        // Network error or other problem with the cache URL
+        console.warn('Cache fetch error, falling back to GitHub API', err);
+        response = null;
+      }
+
+      // If cache didn't yield expected data, try GitHub Trees API as fallback
+      if (!data || !data.tree) {
+        const ghResp = await fetch(githubUrl, {
+          headers: {
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+        if (!ghResp.ok) {
+          throw new Error(`GitHub API error! status: ${ghResp.status}`);
+        }
+        data = await ghResp.json();
+      }
         
-        const data = await response.json();
-        
-        // PDFファイルのみをフィルタリング
+      // PDFファイルのみをフィルタリング
         const pdfFiles = data.tree
           .filter((item: any) => item.type === 'blob' && item.path.endsWith('.pdf'))
           .map((item: any) => ({
@@ -96,12 +122,12 @@ export default function Home() {
         }, {});
         
         setFiles(grouped);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'ファイルの取得に失敗しました');
-        setFiles({});
-      } finally {
-        setLoading(false);
-      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ファイルの取得に失敗しました');
+      setFiles({});
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
