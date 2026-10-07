@@ -57,7 +57,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const cacheUrl = `https://kanpo-ghapi-cache.m9m9.workers.dev/?year=${year}`;
+      const cacheUrl = `https://kanpo-ghapi-cache.seiji2.workers.dev/?year=${year}`;
       const githubUrl = `https://api.github.com/repos/kanpo-downloader/kanpo-${year}/git/trees/main?recursive=1`;
 
       // Try the cache endpoint first
@@ -258,6 +258,9 @@ export default function Home() {
           </h1>
           <p className="text-gray-600">
             官報アーカイブを年別にダウンロードできます
+          </p>
+          <p className="text-gray-600 text-sm mt-2">
+            公式サイトの官報は公開から90日で閲覧できなくなりますが、このサイトでは90日を過ぎた官報もダウンロードできます
           </p>
         </header>
 
