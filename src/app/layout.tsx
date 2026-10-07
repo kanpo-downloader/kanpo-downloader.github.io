@@ -6,8 +6,8 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: '官報ダウンローダー | 官報PDFファイルの無料ダウンロード',
-  description: '官報のPDFファイルを無料でダウンロードできます。本紙、号外、政府調達、特別号外、目録など、2025年以降の官報を月別・日別に整理して提供。最新の官報情報を簡単にアクセス。',
-  keywords: '官報,PDF,ダウンロード,無料,本紙,号外,政府調達,特別号外,目録,2025年,月別,日別,最新,情報,90日,3ヶ月,3か月',
+  description: '官報のPDFファイルを無料でダウンロードできます。本紙、号外、政府調達、特別号外、目録など、2025年以降の官報を月別・日別に整理して提供。公式サイトでは90日で閲覧できなくなる官報も、このサイトではダウンロードできます。最新の官報情報を簡単にアクセス。',
+  keywords: '官報,PDF,ダウンロード,無料,本紙,号外,政府調達,特別号外,目録,2025年,月別,日別,最新,情報,90日,3ヶ月,3か月,90日以上,過去,バックナンバー,保存,アーカイブ',
   authors: [{ name: '官報ダウンローダー' }],
   creator: '官報ダウンローダー',
   publisher: '官報ダウンローダー',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: '官報ダウンローダー | 官報PDFファイルの無料ダウンロード',
-    description: '官報のPDFファイルを無料でダウンロードできます。本紙、号外、政府調達、特別号外、目録など、2025年以降の官報を月別・日別に整理して提供。',
+    description: '官報のPDFファイルを無料でダウンロードできます。本紙、号外、政府調達、特別号外、目録など、2025年以降の官報を月別・日別に整理して提供。公式サイトでは90日で閲覧できなくなる官報も、このサイトではダウンロードできます。',
     url: 'https://kanpo-downloader.github.io',
     siteName: '官報ダウンローダー',
     locale: 'ja_JP',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: '官報ダウンローダー | 官報PDFファイルの無料ダウンロード',
-    description: '官報のPDFファイルを無料でダウンロードできます。本紙、号外、政府調達、特別号外、目録など、2025年以降の官報を月別・日別に整理して提供。',
+    description: '官報のPDFファイルを無料でダウンロードできます。本紙、号外、政府調達、特別号外、目録など、2025年以降の官報を月別・日別に整理して提供。公式サイトでは90日で閲覧できなくなる官報も、このサイトではダウンロードできます。',
   },
   robots: {
     index: true,
@@ -76,7 +76,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               "name": "官報ダウンローダー",
-              "description": "官報のPDFファイルを無料でダウンロードできます。本紙、号外、政府調達、特別号外、目録など、2025年以降の官報を月別・日別に整理して提供。",
+              "description": "官報のPDFファイルを無料でダウンロードできます。本紙、号外、政府調達、特別号外、目録など、2025年以降の官報を月別・日別に整理して提供。公式サイトでは90日で閲覧できなくなる官報も、このサイトではダウンロードできます。",
               "url": "https://kanpo-downloader.github.io",
               "potentialAction": {
                 "@type": "SearchAction",
@@ -107,7 +107,7 @@ export default function RootLayout({
               "serviceType": "官報情報提供",
               "areaServed": "JP",
               "availableLanguage": "ja",
-              "keywords": "官報,PDF,ダウンロード,無料,本紙,号外,政府調達,特別号外,目録,90日,3ヶ月,3か月"
+              "keywords": "官報,PDF,ダウンロード,無料,本紙,号外,政府調達,特別号外,目録,90日,3ヶ月,3か月,90日以上,過去,バックナンバー,保存,アーカイブ"
             })
           }}
         />
