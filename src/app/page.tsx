@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface FileData {
   path: string;
@@ -23,7 +23,11 @@ interface MonthGroup {
 }
 
 export default function Home() {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  // null の間は URL (?year= / #アンカー) を読む前なので取得しない
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  // URL の #アンカーで指定された要素 (PDF カードは強調表示する)
+  const [targetId, setTargetId] = useState<string | null>(null);
+  const scrolledToTarget = useRef(false);
   const [files, setFiles] = useState<GroupedFiles>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -130,9 +134,36 @@ export default function Home() {
     }
   }
 
+  // 初回表示時に URL から年とアンカーを読む。
+  // 例: /?year=2026#20261117h01830 、 /#20261117h01830 (年はアンカーの先頭 4 桁から推定)
   useEffect(() => {
-    fetchFiles(selectedYear);
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    const yearParam = new URLSearchParams(window.location.search).get('year');
+    const yearFromHash = id.match(/^(?:date-)?(\d{4})\d{4}/)?.[1];
+    const year = parseInt(yearParam ?? yearFromHash ?? '', 10);
+    setSelectedYear(years.includes(year) ? year : currentYear);
+    if (id) setTargetId(id);
+    // 初回のみ実行する
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (selectedYear !== null) fetchFiles(selectedYear);
   }, [selectedYear]);
+
+  // 一覧はマウント後に取得・描画されるため、ブラウザ標準のアンカー移動は効かない。描画後に自分でスクロールする
+  useEffect(() => {
+    if (!targetId || scrolledToTarget.current || loading) return;
+    const el = document.getElementById(targetId);
+    if (el) {
+      scrolledToTarget.current = true;
+      el.scrollIntoView({ block: 'center' });
+      el.focus({ preventScroll: true });
+    }
+  }, [files, loading, targetId]);
+
+  // PDF カードの id。ファイル名の「日付8桁 + 種別1文字 + 号数5桁」 例: 20261117h01830
+  const pdfAnchor = (path: string) => (path.split('/')[1] ?? '').slice(0, 14);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) {
@@ -276,7 +307,7 @@ export default function Home() {
                   key={year}
                   onClick={() => setSelectedYear(year)}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    selectedYear === year
+                    (selectedYear ?? currentYear) === year
                       ? 'bg-blue-600 text-white shadow-lg'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
@@ -292,7 +323,7 @@ export default function Home() {
                    <div className="flex flex-wrap gap-3">
                      {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
                        const monthStr = month.toString().padStart(2, '0');
-                       const hasFiles = Object.keys(files).some(date => date.startsWith(`${selectedYear}${monthStr}`));
+                       const hasFiles = Object.keys(files).some(date => date.startsWith(`${selectedYear ?? currentYear}${monthStr}`));
                        return (
                          <button
                            key={month}
@@ -319,10 +350,10 @@ export default function Home() {
                  {/* ファイル一覧セクション */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              {selectedYear}年の官報ファイル一覧
+              {selectedYear ?? currentYear}年の官報ファイル一覧
             </h2>
             
-            {loading && (
+            {(loading || selectedYear === null) && (
               <div className="text-center py-8">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 <p className="mt-2 text-gray-500">ファイルを読み込み中...</p>
@@ -351,20 +382,21 @@ export default function Home() {
                       </h2>
                     </div>
                     {monthGroup.dates.map(([date, typeGroups]) => (
-                      <div key={date} id={`date-${date}`} className="border border-gray-200 rounded-lg p-4">
+                      <div key={date} id={`date-${date}`} className={`border rounded-lg p-4 ${targetId?.replace(/^date-/, '').startsWith(date) ? 'border-orange-400 bg-orange-50' : 'border-gray-200'}`}>
                       <h3 className="text-lg font-semibold text-gray-800 mb-4">
                         {formatDate(date)}
                       </h3>
-                      <div className="flex gap-3 overflow-x-auto">
+                      <div className="flex gap-3 overflow-x-auto p-2 -m-2">
                         {/* 本紙 */}
                         {typeGroups.h && typeGroups.h.length > 0 && (
                           <div className="space-y-2 w-40 shrink-0">
                             {typeGroups.h.map((file, index) => (
                               <a
                                 key={index}
+                                id={pdfAnchor(file.path)}
                                 href={file.downloadUrl}
                                 download
-                                className="block aspect-[4/3] bg-red-50 border border-red-200 rounded-lg p-3 hover:bg-red-100 transition-colors text-center relative"
+                                className={`block aspect-[4/3] bg-red-50 border border-red-200 rounded-lg p-3 hover:bg-red-100 transition-colors text-center relative ${targetId === pdfAnchor(file.path) ? 'ring-4 ring-orange-400 ring-offset-2 scale-105 shadow-lg z-10' : ''}`}
                               >
                                                                   <div className="absolute top-2 left-2 bg-red-200 text-red-800 text-xs px-2 py-1 rounded font-medium">
                                     {getIssueNumber(file.path)}
@@ -398,9 +430,10 @@ export default function Home() {
                             {typeGroups.g.map((file, index) => (
                               <a
                                 key={index}
+                                id={pdfAnchor(file.path)}
                                 href={file.downloadUrl}
                                 download
-                                className="block aspect-[4/3] bg-blue-50 border border-blue-200 rounded-lg p-3 hover:bg-blue-100 transition-colors text-center relative"
+                                className={`block aspect-[4/3] bg-blue-50 border border-blue-200 rounded-lg p-3 hover:bg-blue-100 transition-colors text-center relative ${targetId === pdfAnchor(file.path) ? 'ring-4 ring-orange-400 ring-offset-2 scale-105 shadow-lg z-10' : ''}`}
                               >
                                                                   <div className="absolute top-2 left-2 bg-blue-200 text-blue-800 text-xs px-2 py-1 rounded font-medium">
                                     {getIssueNumber(file.path)}
@@ -434,9 +467,10 @@ export default function Home() {
                             {typeGroups.c.map((file, index) => (
                               <a
                                 key={index}
+                                id={pdfAnchor(file.path)}
                                 href={file.downloadUrl}
                                 download
-                                className="block aspect-[4/3] bg-green-50 border border-green-200 rounded-lg p-3 hover:bg-green-100 transition-colors text-center relative"
+                                className={`block aspect-[4/3] bg-green-50 border border-green-200 rounded-lg p-3 hover:bg-green-100 transition-colors text-center relative ${targetId === pdfAnchor(file.path) ? 'ring-4 ring-orange-400 ring-offset-2 scale-105 shadow-lg z-10' : ''}`}
                               >
                                                                   <div className="absolute top-2 left-2 bg-green-200 text-green-800 text-xs px-2 py-1 rounded font-medium">
                                     {getIssueNumber(file.path)}
@@ -470,9 +504,10 @@ export default function Home() {
                             {typeGroups.t.map((file, index) => (
                               <a
                                 key={index}
+                                id={pdfAnchor(file.path)}
                                 href={file.downloadUrl}
                                 download
-                                className="block aspect-[4/3] bg-purple-50 border border-purple-200 rounded-lg p-3 hover:bg-purple-100 transition-colors text-center relative"
+                                className={`block aspect-[4/3] bg-purple-50 border border-purple-200 rounded-lg p-3 hover:bg-purple-100 transition-colors text-center relative ${targetId === pdfAnchor(file.path) ? 'ring-4 ring-orange-400 ring-offset-2 scale-105 shadow-lg z-10' : ''}`}
                               >
                                                                   <div className="absolute top-2 left-2 bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded font-medium">
                                     {getIssueNumber(file.path)}
@@ -506,9 +541,10 @@ export default function Home() {
                             {typeGroups.m.map((file, index) => (
                               <a
                                 key={index}
+                                id={pdfAnchor(file.path)}
                                 href={file.downloadUrl}
                                 download
-                                className="block aspect-[4/3] bg-yellow-50 border border-yellow-200 rounded-lg p-3 hover:bg-yellow-100 transition-colors text-center relative"
+                                className={`block aspect-[4/3] bg-yellow-50 border border-yellow-200 rounded-lg p-3 hover:bg-yellow-100 transition-colors text-center relative ${targetId === pdfAnchor(file.path) ? 'ring-4 ring-orange-400 ring-offset-2 scale-105 shadow-lg z-10' : ''}`}
                               >
                                                                   <div className="absolute top-2 left-2 bg-yellow-200 text-yellow-800 text-xs px-2 py-1 rounded font-medium">
                                     {getIssueNumber(file.path)}
